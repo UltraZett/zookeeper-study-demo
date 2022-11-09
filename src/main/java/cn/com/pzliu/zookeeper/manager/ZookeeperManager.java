@@ -1,5 +1,6 @@
-package cn.com.pzliu.zookeeper.config;
+package cn.com.pzliu.zookeeper.manager;
 
+import cn.com.pzliu.zookeeper.config.ZookeeperConfig;
 import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
@@ -12,29 +13,24 @@ import org.springframework.stereotype.Component;
 @Component
 public class ZookeeperManager implements InitializingBean, DisposableBean {
 
-
-    private String connectionStr;
-
-    private Integer timeOutMs;
-
-    private Integer retryMs;
-
-    private Integer retryTimes;
-
-    private String namespace;
+    private final ZookeeperConfig config;
     @Getter
     private CuratorFramework client;
 
+    public ZookeeperManager(ZookeeperConfig config) {
+        this.config = config;
+    }
 
 
     @Override
     public void afterPropertiesSet() throws Exception {
         this.client = CuratorFrameworkFactory.builder()
-                .connectString(connectionStr)
-                .connectionTimeoutMs(timeOutMs)
-                .retryPolicy(new ExponentialBackoffRetry(retryMs,retryMs))
-                .namespace(StringUtils.isEmpty(namespace)?"":namespace)
+                .connectString(config.getConnectionStr())
+                .connectionTimeoutMs(config.getTimeOutMs())
+                .retryPolicy(new ExponentialBackoffRetry(config.getRetryMs(), config.getRetryTimes()))
+                .namespace(config.getNamespace())
                 .build();
+        this.client.start();
     }
 
     @Override
